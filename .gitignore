@@ -1,0 +1,18 @@
+# Environment
+.venv/
+__pycache__/
+.ipynb_checkpoints/
+
+# Data and generated files
+data/raw/
+data/processed/
+*.duckdb
+*.duckdb.wal
+
+# Secrets
+.env
+.streamlit/secrets.toml
+
+# System
+.vscode/
+Thumbs.db
