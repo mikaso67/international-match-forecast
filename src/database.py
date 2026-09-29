@@ -8,9 +8,9 @@ ROOT = Path(__file__).resolve().parents[1]
 DB_PATH = ROOT / "data" / "processed" / "matches.duckdb"
 SQL_DIR = ROOT / "sql"
 STEPS = ["01_load_raw.sql", "02_clean.sql", "03_team_form.sql", build_elo,
-         "04_opponent_strength.sql"]
+         "04_opponent_strength.sql", "05_match_features.sql"]
 TABLES = ["raw_results", "raw_goalscorers", "excluded_teams", "clean_results",
-          "team_matches", "team_form", "elo_ratings", "team_opponent_strength"]
+          "team_matches", "team_form", "elo_ratings", "team_opponent_strength", "match_features"]
 
 
 def connect(read_only=False):
