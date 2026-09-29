@@ -27,7 +27,10 @@ SELECT
          ELSE tournament END AS tournament,
     city,
     country,
-    neutral
+    neutral,
+    CASE WHEN home_score > away_score THEN 'H'
+         WHEN home_score = away_score THEN 'D'
+         ELSE 'A' END AS result
 FROM raw_results
 WHERE home_score IS NOT NULL
   AND away_score IS NOT NULL
