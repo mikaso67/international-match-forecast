@@ -28,6 +28,6 @@ if __name__ == "__main__":
         for path in sorted(SQL_DIR.glob("*.sql")):
             run_sql_file(con, path.name)
             print(f"Ran {path.name}")
-        for table in ["raw_results", "raw_goalscorers", "excluded_teams", "clean_results"]:
+        for table in ["raw_results", "raw_goalscorers", "excluded_teams", "clean_results", "team_matches", "team_form"]:
             n_rows = con.sql(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
             print(f"{table}: {n_rows} rows")
