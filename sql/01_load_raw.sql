@@ -16,3 +16,10 @@ SELECT * FROM read_csv('data/raw/former_names.csv', header = true, columns = {
     'current': 'VARCHAR', 'former': 'VARCHAR',
     'start_date': 'DATE', 'end_date': 'DATE'
 });
+
+CREATE OR REPLACE TABLE raw_goalscorers AS
+SELECT * FROM read_csv('data/raw/goalscorers.csv', header = true, nullstr = 'NA', columns = {
+    'date': 'DATE', 'home_team': 'VARCHAR', 'away_team': 'VARCHAR',
+    'team': 'VARCHAR', 'scorer': 'VARCHAR', 'minute': 'INTEGER',
+    'own_goal': 'BOOLEAN', 'penalty': 'BOOLEAN'
+});
