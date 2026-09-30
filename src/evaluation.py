@@ -35,3 +35,16 @@ def evaluate(probs, results):
 def compare(predictions, results):
     rows = {name: evaluate(probs, results) for name, probs in predictions.items()}
     return pd.DataFrame(rows).T.round(4)
+
+
+def calibration_table(probs, results, outcome, n_bins=10):
+    k = OUTCOMES.index(outcome)
+    predicted = np.asarray(probs)[:, k]
+    observed = one_hot(results)[:, k]
+    bins = np.clip((predicted * n_bins).astype(int), 0, n_bins - 1)
+    table = pd.DataFrame({"bin": bins, "predicted": predicted, "observed": observed})
+    return (
+        table.groupby("bin")
+        .agg(predicted=("predicted", "mean"), observed=("observed", "mean"), n_matches=("observed", "size"))
+        .reset_index(drop=True)
+    )
