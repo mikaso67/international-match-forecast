@@ -1,0 +1,299 @@
+{
+  "name": "FIFA World Cup 2026",
+  "start_date": "2026-06-11",
+  "hosts": [
+    "Canada",
+    "Mexico",
+    "United States"
+  ],
+  "groups": {
+    "A": [
+      "Mexico",
+      "South Africa",
+      "South Korea",
+      "Czech Republic"
+    ],
+    "B": [
+      "Switzerland",
+      "Canada",
+      "Bosnia and Herzegovina",
+      "Qatar"
+    ],
+    "C": [
+      "Brazil",
+      "Morocco",
+      "Scotland",
+      "Haiti"
+    ],
+    "D": [
+      "United States",
+      "Australia",
+      "Paraguay",
+      "Turkey"
+    ],
+    "E": [
+      "Germany",
+      "Ivory Coast",
+      "Ecuador",
+      "Curaçao"
+    ],
+    "F": [
+      "Netherlands",
+      "Japan",
+      "Sweden",
+      "Tunisia"
+    ],
+    "G": [
+      "Belgium",
+      "Egypt",
+      "Iran",
+      "New Zealand"
+    ],
+    "H": [
+      "Spain",
+      "Cape Verde",
+      "Uruguay",
+      "Saudi Arabia"
+    ],
+    "I": [
+      "France",
+      "Norway",
+      "Senegal",
+      "Iraq"
+    ],
+    "J": [
+      "Argentina",
+      "Austria",
+      "Algeria",
+      "Jordan"
+    ],
+    "K": [
+      "Colombia",
+      "Portugal",
+      "DR Congo",
+      "Uzbekistan"
+    ],
+    "L": [
+      "England",
+      "Croatia",
+      "Ghana",
+      "Panama"
+    ]
+  },
+  "best_thirds": 8,
+  "tiebreakers": [
+    "points",
+    "goal_difference",
+    "goals_for"
+  ],
+  "knockout": [
+    {
+      "match": 73,
+      "home": "2A",
+      "away": "2B",
+      "country": "United States"
+    },
+    {
+      "match": 74,
+      "home": "1E",
+      "away": "3ABCDF",
+      "country": "United States"
+    },
+    {
+      "match": 75,
+      "home": "1F",
+      "away": "2C",
+      "country": "Mexico"
+    },
+    {
+      "match": 76,
+      "home": "1C",
+      "away": "2F",
+      "country": "United States"
+    },
+    {
+      "match": 77,
+      "home": "1I",
+      "away": "3CDFGH",
+      "country": "United States"
+    },
+    {
+      "match": 78,
+      "home": "2E",
+      "away": "2I",
+      "country": "United States"
+    },
+    {
+      "match": 79,
+      "home": "1A",
+      "away": "3CEFHI",
+      "country": "Mexico"
+    },
+    {
+      "match": 80,
+      "home": "1L",
+      "away": "3EHIJK",
+      "country": "United States"
+    },
+    {
+      "match": 81,
+      "home": "1D",
+      "away": "3BEFIJ",
+      "country": "United States"
+    },
+    {
+      "match": 82,
+      "home": "1G",
+      "away": "3AEHIJ",
+      "country": "United States"
+    },
+    {
+      "match": 83,
+      "home": "2K",
+      "away": "2L",
+      "country": "Canada"
+    },
+    {
+      "match": 84,
+      "home": "1H",
+      "away": "2J",
+      "country": "United States"
+    },
+    {
+      "match": 85,
+      "home": "1B",
+      "away": "3EFGIJ",
+      "country": "Canada"
+    },
+    {
+      "match": 86,
+      "home": "1J",
+      "away": "2H",
+      "country": "United States"
+    },
+    {
+      "match": 87,
+      "home": "1K",
+      "away": "3DEIJL",
+      "country": "United States"
+    },
+    {
+      "match": 88,
+      "home": "2D",
+      "away": "2G",
+      "country": "United States"
+    },
+    {
+      "match": 89,
+      "home": "W74",
+      "away": "W77",
+      "country": "United States"
+    },
+    {
+      "match": 90,
+      "home": "W73",
+      "away": "W75",
+      "country": "United States"
+    },
+    {
+      "match": 91,
+      "home": "W76",
+      "away": "W78",
+      "country": "United States"
+    },
+    {
+      "match": 92,
+      "home": "W79",
+      "away": "W80",
+      "country": "Mexico"
+    },
+    {
+      "match": 93,
+      "home": "W83",
+      "away": "W84",
+      "country": "United States"
+    },
+    {
+      "match": 94,
+      "home": "W81",
+      "away": "W82",
+      "country": "United States"
+    },
+    {
+      "match": 95,
+      "home": "W86",
+      "away": "W88",
+      "country": "United States"
+    },
+    {
+      "match": 96,
+      "home": "W85",
+      "away": "W87",
+      "country": "Canada"
+    },
+    {
+      "match": 97,
+      "home": "W89",
+      "away": "W90",
+      "country": "United States"
+    },
+    {
+      "match": 98,
+      "home": "W93",
+      "away": "W94",
+      "country": "United States"
+    },
+    {
+      "match": 99,
+      "home": "W91",
+      "away": "W92",
+      "country": "United States"
+    },
+    {
+      "match": 100,
+      "home": "W95",
+      "away": "W96",
+      "country": "United States"
+    },
+    {
+      "match": 101,
+      "home": "W97",
+      "away": "W98",
+      "country": "United States"
+    },
+    {
+      "match": 102,
+      "home": "W99",
+      "away": "W100",
+      "country": "United States"
+    },
+    {
+      "match": 104,
+      "home": "W101",
+      "away": "W102",
+      "country": "United States"
+    }
+  ],
+  "rounds": {
+    "round_of_32": [
+      73,
+      88
+    ],
+    "round_of_16": [
+      89,
+      96
+    ],
+    "quarter_final": [
+      97,
+      100
+    ],
+    "semi_final": [
+      101,
+      102
+    ],
+    "final": [
+      104,
+      104
+    ]
+  }
+}
