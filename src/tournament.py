@@ -4,7 +4,7 @@ from itertools import combinations
 import numpy as np
 import pandas as pd
 
-from src.database import ROOT
+from src.database import ROOT, query
 from src.simulation import simulate_knockout, simulate_scores
 
 CONFIG_DIR = ROOT / "configs"
@@ -134,3 +134,31 @@ def simulate_tournament(config, model, n_sims=10_000, seed=42):
     final = config["rounds"]["final"][0]
     summary["champion"] = share([winners[final]])
     return pd.DataFrame(summary, index=teams)
+
+
+def actual_progress(config, end_date):
+    teams = [team for members in config["groups"].values() for team in members]
+    matches = query(f"""
+        SELECT c.date, c.home_team, c.away_team, c.home_score_final, c.away_score_final, s.winner
+        FROM clean_results AS c
+        LEFT JOIN raw_shootouts AS s USING (date, home_team, away_team)
+        WHERE c.date >= '{config["start_date"]}' AND c.date <= '{end_date}'
+          AND c.home_team IN ({", ".join(repr(t) for t in teams)})
+        ORDER BY c.date, c.match_id
+    """)
+    n_group_matches = 6 * len(config["groups"])
+    knockout = matches.iloc[n_group_matches:].reset_index(drop=True)
+    sizes = {name: last - first + 1 for name, (first, last) in config["rounds"].items()}
+    progress = pd.DataFrame(0, index=teams, columns=list(sizes) + ["champion"])
+    start = 0
+    for name, size in sizes.items():
+        games = knockout.iloc[start:start + size] if name != "final" else knockout.iloc[[-1]]
+        progress.loc[pd.unique(games[["home_team", "away_team"]].to_numpy().ravel()), name] = 1
+        start += size
+    final = knockout.iloc[-1]
+    if final["home_score_final"] != final["away_score_final"]:
+        champion = final["home_team"] if final["home_score_final"] > final["away_score_final"] else final["away_team"]
+    else:
+        champion = final["winner"]
+    progress.loc[champion, "champion"] = 1
+    return progress
