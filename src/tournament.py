@@ -28,6 +28,13 @@ def goal_rates(model, teams):
     return rates, home_factor
 
 
+def rank_teams(points, goals_for, goals_against, rng):
+    goal_difference = goals_for - goals_against
+    score = points * 1e6 + (goal_difference + 500) * 1e3 + goals_for + rng.random(points.shape)
+    order = np.argsort(-score, axis=1)
+    return order, np.take_along_axis(score, order, axis=1)
+
+
 def simulate_group(teams, rates, home_factor, hosts, n_sims, rng):
     points = np.zeros((n_sims, 4))
     goals_for = np.zeros((n_sims, 4))
@@ -42,10 +49,7 @@ def simulate_group(teams, rates, home_factor, hosts, n_sims, rng):
         goals_for[:, j] += away
         goals_against[:, i] += away
         goals_against[:, j] += home
-    goal_difference = goals_for - goals_against
-    score = points * 1e6 + (goal_difference + 500) * 1e3 + goals_for + rng.random((n_sims, 4))
-    order = np.argsort(-score, axis=1)
-    ranked = np.take_along_axis(score, order, axis=1)
+    order, ranked = rank_teams(points, goals_for, goals_against, rng)
     return np.asarray(teams)[order], ranked
 
 
@@ -162,3 +166,37 @@ def actual_progress(config, end_date):
         champion = final["winner"]
     progress.loc[champion, "champion"] = 1
     return progress
+
+
+def simulate_league(fixtures, model, n_sims=10_000, seed=42):
+    rng = np.random.default_rng(seed)
+    fixtures = fixtures.copy()
+    remaining = fixtures["home_score"].isna()
+    fixtures.loc[remaining, "home_goals"], fixtures.loc[remaining, "away_goals"] = model.expected_goals(fixtures[remaining])
+    rows = []
+    for group, matches in fixtures.groupby("group"):
+        teams = sorted(set(matches["home_team"]) | set(matches["away_team"]))
+        index = {team: i for i, team in enumerate(teams)}
+        points = np.zeros((n_sims, len(teams)))
+        goals_for = np.zeros((n_sims, len(teams)))
+        goals_against = np.zeros((n_sims, len(teams)))
+        for m in matches.itertuples():
+            if np.isnan(m.home_score):
+                home, away = simulate_scores(m.home_goals, m.away_goals, n_sims, rng)
+            else:
+                home, away = np.full(n_sims, m.home_score), np.full(n_sims, m.away_score)
+            i, j = index[m.home_team], index[m.away_team]
+            points[:, i] += np.where(home > away, 3, np.where(home == away, 1, 0))
+            points[:, j] += np.where(away > home, 3, np.where(home == away, 1, 0))
+            goals_for[:, i] += home
+            goals_for[:, j] += away
+            goals_against[:, i] += away
+            goals_against[:, j] += home
+        order, _ = rank_teams(points, goals_for, goals_against, rng)
+        for position in range(len(teams)):
+            shares = np.bincount(order[:, position], minlength=len(teams)) / n_sims
+            for team, share in zip(teams, shares):
+                rows.append({"group": group, "team": team, "position": position + 1, "probability": share})
+    table = pd.DataFrame(rows).pivot_table(index=["group", "team"], columns="position", values="probability")
+    table.columns = [f"p{position}" for position in table.columns]
+    return table.reset_index()
