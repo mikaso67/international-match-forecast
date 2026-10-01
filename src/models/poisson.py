@@ -87,3 +87,18 @@ def rolling_predict(make_model, history, targets, freq="MS"):
         model = make_model().fit(history, period.start_time)
         probs[in_period] = model.predict_proba(targets[in_period])
     return probs
+
+
+def rolling_expected_goals(history, targets, freq="Q"):
+    periods = targets["date"].dt.to_period(freq)
+    home_goals = np.full(len(targets), np.nan)
+    away_goals = np.full(len(targets), np.nan)
+    for period in periods.unique():
+        in_period = (periods == period).to_numpy()
+        model = PoissonModel().fit(history, period.start_time)
+        home_goals[in_period], away_goals[in_period] = model.expected_goals(targets[in_period])
+    return pd.DataFrame({
+        "match_id": targets["match_id"].to_numpy(),
+        "poisson_home_goals": home_goals,
+        "poisson_away_goals": away_goals,
+    })

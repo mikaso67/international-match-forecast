@@ -48,3 +48,14 @@ def calibration_table(probs, results, outcome, n_bins=10):
         .agg(predicted=("predicted", "mean"), observed=("observed", "mean"), n_matches=("observed", "size"))
         .reset_index(drop=True)
     )
+    
+    
+
+def log_loss_per_match(probs, results):
+    p_true = np.sum(np.asarray(probs) * one_hot(results), axis=1)
+    return -np.log(np.clip(p_true, 1e-15, 1))
+
+
+def paired_difference(probs_a, probs_b, results):
+    diff = log_loss_per_match(probs_a, results) - log_loss_per_match(probs_b, results)
+    return {"mean_diff": diff.mean(), "std_error": diff.std(ddof=1) / np.sqrt(len(diff))}    
