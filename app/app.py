@@ -31,6 +31,8 @@ ROUNDS = {
     "final": "Final",
     "champion": "Winner",
 }
+OUTCOMES = ["H", "D", "A"]
+OUTCOME_LABELS = {"H": "Home win", "D": "Draw", "A": "Away win"}
 MODEL_LABELS = {
     "uniform": "One third each",
     "frequency_by_venue": "Past frequencies",
@@ -47,6 +49,7 @@ def load_data():
         "world_cup": pd.read_csv(APP_DIR / "data" / "world_cup_2026_backtest.csv"),
         "scores": pd.read_csv(APP_DIR / "data" / "test_scores.csv"),
         "calibration": pd.read_csv(APP_DIR / "data" / "test_calibration.csv"),
+        "predictions": pd.read_csv(APP_DIR / "data" / "test_predictions.csv", parse_dates=["date"]),
     }
 
 
@@ -162,7 +165,7 @@ def world_cup_tab(data):
         <p class="verdict">The final was played by the two teams the model rated most likely to reach it,
         Argentina (26%) and Spain (21%). Spain won the title as the second favourite.</p>
         <p class="verdict">The four semi-finalists all had a higher chance of getting there than the four other
-        quarter-finalists. The biggest misses were Uruguay, out in the groups with a 89% chance of going through,
+        quarter-finalists. The biggest misses were Uruguay, out in the groups with an 89% chance of going through,
         and Brazil, beaten by Norway in the last 16.</p>
         """,
         unsafe_allow_html=True,
@@ -184,12 +187,16 @@ def calibration_chart(calibration):
                      alt.Tooltip("n_matches:Q", title="Games")],
         )
         reference = alt.Chart(diagonal).mark_line(color="#9AA1AD", strokeDash=[4, 4]).encode(x="predicted", y="observed")
-        charts.append((reference + line).properties(width=230, height=230, title=name))
+        charts.append(styled((reference + line).properties(width="container", height=230, title=name)))
+    return charts
+
+
+def styled(chart):
     return (
-        alt.hconcat(*charts)
-        .configure(font="Barlow, Helvetica, Arial, sans-serif")
+        chart.configure(font="Barlow, Helvetica, Arial, sans-serif")
         .configure_title(font="Barlow Condensed, Arial Narrow, sans-serif", fontSize=17, fontWeight=600, color=INK, anchor="start")
         .configure_axis(labelColor=MUTED, titleColor=MUTED, gridColor="#E4E7EC", domainColor="#C3C8D0", labelFontSize=12)
+        .configure_legend(labelColor=INK, labelFontSize=13, title=None, orient="top", symbolStrokeWidth=3)
         .configure_view(stroke=None)
     )
 
@@ -225,7 +232,212 @@ def reliability_tab(data):
         'really happened. On the dashed line, an announced 60% happens 60% of the time.</p>',
         unsafe_allow_html=True,
     )
-    st.altair_chart(calibration_chart(data["calibration"]), theme=None)
+    for column, chart in zip(st.columns(3, gap="medium"), calibration_chart(data["calibration"])):
+        with column:
+            st.altair_chart(chart, theme=None)
+
+
+def outcome_probs(predictions, model):
+    return predictions[[f"{model}_{o}" for o in OUTCOMES]].to_numpy()
+
+
+def match_log_loss(predictions, model):
+    actual = predictions["result"].map(OUTCOMES.index).to_numpy()
+    p_true = outcome_probs(predictions, model)[np.arange(len(actual)), actual]
+    return -np.log(np.clip(p_true, 1e-15, 1))
+
+
+def predicted_outcome(predictions, model):
+    return np.array(OUTCOMES)[outcome_probs(predictions, model).argmax(axis=1)]
+
+
+def score_table(scores, predictions):
+    table = scores.set_index("model")[["log_loss", "brier", "rps"]].copy()
+    table["accuracy"] = [
+        1 / 3 if model == "uniform" else np.mean(predicted_outcome(predictions, model) == predictions["result"])
+        for model in table.index
+    ]
+    return table
+
+
+def metric_chart(table):
+    names = {"log_loss": "Log loss", "brier": "Brier score", "rps": "Ranked probability score"}
+    long = (
+        table[list(names)].rename_axis("model").reset_index()
+        .melt(id_vars="model", var_name="metric", value_name="value")
+        .assign(label=lambda d: d["model"].map(MODEL_LABELS), final=lambda d: d["model"] == "poisson")
+    )
+    order = list(MODEL_LABELS.values())
+    charts = []
+    for metric, title in names.items():
+        base = alt.Chart(long[long["metric"] == metric])
+        y_axis = alt.Axis(title=None, labelFontSize=13, labelColor=INK)
+        dots = base.mark_circle(size=140, opacity=1).encode(
+            x=alt.X("value:Q", title=None, scale=alt.Scale(zero=False, padding=16)),
+            y=alt.Y("label:N", sort=order, axis=y_axis),
+            color=alt.condition("datum.final", alt.value(ACCENT), alt.value("#9AA1AD")),
+            tooltip=[alt.Tooltip("label:N", title="Model"), alt.Tooltip("value:Q", format=".4f", title=title)],
+        )
+        values = base.mark_text(dy=-13, fontSize=12, color=MUTED).encode(
+            x="value:Q", y=alt.Y("label:N", sort=order), text=alt.Text("value:Q", format=".3f")
+        )
+        charts.append(styled((dots + values).properties(width="container", height=220, title=title)))
+    return charts
+
+
+def quarterly_chart(predictions):
+    quarters = predictions["date"].dt.to_period("Q").astype(str).str.replace("Q", " Q")
+    frames = [
+        pd.DataFrame({"quarter": quarters, "model": MODEL_LABELS[m], "log_loss": match_log_loss(predictions, m)})
+        for m in ["elo_logistic", "poisson"]
+    ]
+    data = pd.concat(frames).groupby(["quarter", "model"], as_index=False).agg(
+        log_loss=("log_loss", "mean"), games=("log_loss", "size")
+    )
+    return styled(
+        alt.Chart(data)
+        .mark_line(strokeWidth=2.5, point=alt.OverlayMarkDef(size=55, filled=True))
+        .encode(
+            x=alt.X("quarter:O", title=None, axis=alt.Axis(labelAngle=0, labelFontSize=11)),
+            y=alt.Y("log_loss:Q", title="Log loss", scale=alt.Scale(zero=False)),
+            color=alt.Color(
+                "model:N",
+                scale=alt.Scale(domain=["Elo rating", "Goal model"], range=["#9AA1AD", ACCENT]),
+            ),
+            tooltip=["quarter:O", "model:N", alt.Tooltip("log_loss:Q", format=".3f", title="Log loss"), "games:Q"],
+        )
+        .properties(width="container", height=260)
+    )
+
+
+def cumulative_chart(predictions):
+    gain = match_log_loss(predictions, "elo_logistic") - match_log_loss(predictions, "poisson")
+    n = np.arange(1, len(gain) + 1)
+    noise = 2 * gain.std(ddof=1) * np.sqrt(n)
+    data = pd.DataFrame({"game": n, "gain": gain.cumsum(), "low": -noise, "high": noise})
+    band = alt.Chart(data).mark_area(color="#E4E7EC").encode(
+        x=alt.X("game:Q", title="Test games, in date order", scale=alt.Scale(domain=[0, len(gain)], nice=False)),
+        y=alt.Y("low:Q", title="Log loss saved over Elo"),
+        y2="high:Q",
+    )
+    line = alt.Chart(data).mark_line(color=ACCENT, strokeWidth=2.5).encode(
+        x="game:Q", y="gain:Q", tooltip=[alt.Tooltip("game:Q", title="Games"), alt.Tooltip("gain:Q", format=".1f", title="Saved")]
+    )
+    zero = alt.Chart(pd.DataFrame({"y": [0]})).mark_rule(color="#9AA1AD").encode(y="y:Q")
+    return styled((band + zero + line).properties(width="container", height=260))
+
+
+def confusion_table(predictions, model):
+    predicted = predicted_outcome(predictions, model)
+    actual = predictions["result"].to_numpy()
+    counts = pd.crosstab(pd.Categorical(actual, OUTCOMES), pd.Categorical(predicted, OUTCOMES), dropna=False)
+    counts = counts.reindex(index=OUTCOMES, columns=OUTCOMES, fill_value=0)
+    header = "".join(f"<th>{OUTCOME_LABELS[o]}</th>" for o in OUTCOMES)
+    rows = ""
+    for o in OUTCOMES:
+        share = counts.loc[o] / counts.loc[o].sum()
+        cells = ""
+        for c in OUTCOMES:
+            alpha = min(1.0, share[c] ** 0.75)
+            color = "#FFFFFF" if alpha > 0.55 else INK
+            cells += f'<td style="background: rgba(29, 91, 214, {alpha:.3f}); color: {color};">{counts.loc[o, c]:,}</td>'
+        rows += f'<tr><td class="team">{OUTCOME_LABELS[o]}</td>{cells}<td class="side">{share[o]:.0%}</td></tr>'
+    precision = "".join(
+        f'<td class="side">{counts.loc[c, c] / counts[c].sum():.0%}</td>' if counts[c].sum() else '<td class="side">n/a</td>'
+        for c in OUTCOMES
+    )
+    return (
+        f'<table class="confusion"><tr><th></th>{header}<th>Recall</th></tr>{rows}'
+        f'<tr><td class="team">Precision</td>{precision}<td></td></tr></table>'
+    )
+
+
+def plain_table(header, rows):
+    head = "".join(f"<th>{h}</th>" for h in header)
+    body = "".join("<tr>" + "".join(f"<td>{cell}</td>" for cell in row) + "</tr>" for row in rows)
+    return f'<table class="plain"><tr>{head}</tr>{body}</table>'
+
+
+def section(title, text):
+    st.markdown(f'<div class="group-title">{title}</div><p class="lede">{text}</p>', unsafe_allow_html=True)
+
+
+def scores_tab(data):
+    predictions = data["predictions"]
+    table = score_table(data["scores"], predictions)
+    gain = match_log_loss(predictions, "elo_logistic") - match_log_loss(predictions, "poisson")
+    std_error = gain.std(ddof=1) / np.sqrt(len(gain))
+    st.markdown(
+        f'<p class="lede">The same {len(predictions):,} test games, scored with the usual metrics for probability '
+        f'forecasts. Each one compares the announced probabilities with the result that happened. '
+        f'Lower is better.</p>',
+        unsafe_allow_html=True,
+    )
+    for column, chart in zip(st.columns(3, gap="medium"), metric_chart(table)):
+        with column:
+            st.altair_chart(chart, theme=None)
+    rows = [
+        [MODEL_LABELS[m], f"{r.log_loss:.4f}", f"{r.brier:.4f}", f"{r.rps:.4f}", f"{r.accuracy:.1%}"]
+        for m, r in table.loc[list(MODEL_LABELS)].iterrows()
+    ]
+    st.markdown(plain_table(["Model", "Log loss", "Brier", "RPS", "Accuracy"], rows), unsafe_allow_html=True)
+    st.markdown(
+        '<p class="note"><b>Log loss</b>: minus the log of the probability given to the actual result. '
+        'It punishes confident mistakes hardest. <b>Brier</b>: squared distance between the three probabilities and '
+        'the result coded as 0 or 1. <b>RPS</b>: the same on cumulative probabilities, so calling a draw when the home '
+        'side wins costs less than calling an away win. <b>Accuracy</b>: how often the most likely result happened. '
+        'I show it for reference only, since it ignores how confident the forecast was.</p>',
+        unsafe_allow_html=True,
+    )
+
+    section(
+        "Is the gain over Elo real?",
+        f"The goal model saves {gain.mean():.3f} log loss per game over the Elo rating, with a standard error of "
+        f"{std_error:.4f}. The blue line adds up the gain game after game. The grey band is how far the sum could "
+        f"drift by chance alone (two standard deviations). The line leaves the band early and keeps climbing.",
+    )
+    st.altair_chart(cumulative_chart(predictions), theme=None)
+
+    section(
+        "Is it stable over time?",
+        "Log loss by quarter. The level moves with the calendar, since friendlies and qualifiers are not equally "
+        "predictable. The goal model is never behind the Elo rating: clearly ahead in most quarters, level in the others.",
+    )
+    st.altair_chart(quarterly_chart(predictions), theme=None)
+
+    section(
+        "Which results does it get wrong?",
+        "If I keep only the most likely result for each game, I get this confusion matrix for the goal model. "
+        "Rows are what happened, columns the most likely result. Shading is the share of each row.",
+    )
+    st.markdown(confusion_table(predictions, "poisson"), unsafe_allow_html=True)
+    st.markdown(
+        '<p class="note">A draw is almost never the single most likely result, even when its probability is close '
+        'to 30%, so draw recall is near zero. This is expected for a three-way forecast and is the reason I judge '
+        'the model on its probabilities rather than on accuracy.</p>',
+        unsafe_allow_html=True,
+    )
+
+    section(
+        "What each model is trained to minimise",
+        "The training loss and the evaluation metric are not always the same thing.",
+    )
+    st.markdown(
+        plain_table(
+            ["Model", "Predicts", "Training loss"],
+            [
+                ["Elo rating", "Result", "Multinomial cross-entropy on the Elo gap and home advantage"],
+                ["Gradient boosting", "Result", "Multinomial cross-entropy on pre-match features"],
+                ["Goal model", "Goals of each team", "Poisson negative log-likelihood, weighted by recency, small L2 penalty"],
+            ],
+        ),
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        '<p class="note">The goal model never sees win, draw or loss during training. It learns to predict goals, '
+        'and the result probabilities come from the score distribution. It still scores best on the result metrics.</p>',
+        unsafe_allow_html=True,
+    )
 
 
 def method_tab():
@@ -255,13 +467,17 @@ def main():
     st.markdown(f"<style>{(APP_DIR / 'style.css').read_text(encoding='utf-8')}</style>", unsafe_allow_html=True)
     data = load_data()
     masthead()
-    nations, world_cup, reliability, method = st.tabs(["Nations League", "World Cup 2026", "Reliability", "Method"])
+    nations, world_cup, reliability, scores, method = st.tabs(
+        ["Nations League", "World Cup 2026", "Reliability", "Scores", "Method"]
+    )
     with nations:
         nations_league_tab(data)
     with world_cup:
         world_cup_tab(data)
     with reliability:
         reliability_tab(data)
+    with scores:
+        scores_tab(data)
     with method:
         method_tab()
 

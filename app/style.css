@@ -248,6 +248,92 @@ table.path td.won {
     padding: 0.4rem 0;
 }
 
+table.confusion {
+    border-collapse: separate;
+    border-spacing: 3px;
+    width: 100%;
+    max-width: 560px;
+    font-variant-numeric: tabular-nums;
+}
+
+table.confusion th {
+    font-weight: 500;
+    color: var(--muted);
+    font-size: 0.9rem;
+    text-align: center;
+    padding: 0 0 0.25rem 0;
+}
+
+table.confusion td {
+    padding: 0.45rem 0.5rem;
+    text-align: center;
+    border-radius: 2px;
+}
+
+table.confusion td.team {
+    text-align: left;
+    font-family: "Barlow Condensed", sans-serif;
+    font-size: 1.05rem;
+    font-weight: 600;
+    padding-left: 0;
+}
+
+table.confusion td.side {
+    color: var(--muted);
+    font-weight: 600;
+}
+
+table.plain {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 0.6rem 0 0.4rem 0;
+    font-variant-numeric: tabular-nums;
+}
+
+table.plain th {
+    text-align: left;
+    font-weight: 500;
+    color: var(--muted);
+    font-size: 0.9rem;
+    border-bottom: 1px solid var(--ink);
+    padding: 0.3rem 0.6rem 0.3rem 0;
+}
+
+table.plain td {
+    border-bottom: 1px solid var(--rule);
+    padding: 0.4rem 0.6rem 0.4rem 0;
+}
+
+table.plain tr:last-child td {
+    border-bottom: none;
+}
+
+.note {
+    color: var(--muted);
+    font-size: 0.92rem;
+    max-width: 70ch;
+    margin: 0.6rem 0 1rem 0;
+}
+
+.stApp table.places th, .stApp table.places td,
+.stApp table.path th, .stApp table.path td,
+.stApp table.confusion th, .stApp table.confusion td,
+.stApp table.plain th, .stApp table.plain td {
+    border: none;
+}
+
+.stApp table.plain th {
+    border-bottom: 1px solid var(--ink);
+}
+
+.stApp table.plain td {
+    border-bottom: 1px solid var(--rule);
+}
+
+.stApp table.plain tr:last-child td {
+    border-bottom: none;
+}
+
 @media (max-width: 640px) {
     .masthead h1 {
         font-size: 2.5rem;

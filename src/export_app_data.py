@@ -43,16 +43,21 @@ def test_scores(history):
     calibration = pd.concat(
         [calibration_table(probs["poisson"], test["result"], outcome).assign(outcome=outcome) for outcome in OUTCOMES]
     )
-    return scores.rename_axis("model").reset_index(), calibration
+    predictions = test[["date", "home_team", "away_team", "tournament", "result"]].reset_index(drop=True)
+    for name in ["frequency_by_venue", "elo_logistic", "poisson"]:
+        for k, outcome in enumerate(OUTCOMES):
+            predictions[f"{name}_{outcome}"] = probs[name][:, k]
+    return scores.rename_axis("model").reset_index(), calibration, predictions
 
 
 def export():
     APP_DATA_DIR.mkdir(parents=True, exist_ok=True)
     history = match_history()
     world_cup_backtest(history).to_csv(APP_DATA_DIR / "world_cup_2026_backtest.csv", index=False, float_format="%.4f")
-    scores, calibration = test_scores(history)
+    scores, calibration, predictions = test_scores(history)
     scores.to_csv(APP_DATA_DIR / "test_scores.csv", index=False, float_format="%.4f")
     calibration.to_csv(APP_DATA_DIR / "test_calibration.csv", index=False, float_format="%.4f")
+    predictions.to_csv(APP_DATA_DIR / "test_predictions.csv", index=False, float_format="%.4f")
     print(f"App data written to {APP_DATA_DIR}")
 
 
