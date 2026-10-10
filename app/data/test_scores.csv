@@ -1,0 +1,5 @@
+model,log_loss,brier,rps,n_matches
+uniform,1.0986,0.6667,0.2372,2583
+frequency_by_venue,1.0538,0.6352,0.2256,2583
+elo_logistic,0.8649,0.5098,0.1658,2583
+poisson,0.8448,0.4963,0.1602,2583

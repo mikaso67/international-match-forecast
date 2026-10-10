@@ -1,0 +1,273 @@
+@import url("https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&display=swap");
+
+:root {
+    --paper: #FFFFFF;
+    --ink: #1B1F27;
+    --muted: #5E6573;
+    --rule: #E4E7EC;
+    --accent: #1D5BD6;
+    --draw: #CBD1DA;
+    --away: #2D3442;
+}
+
+html, body, [class*="st-"], .stMarkdown, p, li {
+    font-family: "Barlow", sans-serif;
+}
+
+#MainMenu, footer, [data-testid="stHeader"] {
+    display: none;
+}
+
+.block-container {
+    max-width: 920px;
+    padding-top: 2.5rem;
+}
+
+h1, h2, h3, .condensed {
+    font-family: "Barlow Condensed", sans-serif !important;
+    letter-spacing: 0;
+}
+
+.masthead h1 {
+    font-size: 3.4rem;
+    font-weight: 700;
+    line-height: 1;
+    margin: 0 0 0.6rem 0;
+    padding: 0;
+    color: var(--ink);
+}
+
+.masthead p {
+    font-size: 1.15rem;
+    color: var(--muted);
+    max-width: 62ch;
+    margin: 0;
+}
+
+.stamp {
+    border-left: 4px solid var(--accent);
+    padding: 0.55rem 0 0.55rem 1rem;
+    margin: 1.4rem 0 1.6rem 0;
+    color: var(--ink);
+    font-size: 1rem;
+}
+
+.stamp a {
+    color: var(--accent);
+}
+
+.lede {
+    color: var(--muted);
+    max-width: 66ch;
+    margin-bottom: 1.2rem;
+}
+
+.group-title {
+    font-family: "Barlow Condensed", sans-serif;
+    font-size: 1.35rem;
+    font-weight: 600;
+    margin: 1.6rem 0 0.4rem 0;
+}
+
+table.places, table.path {
+    border-collapse: separate;
+    border-spacing: 3px;
+    width: 100%;
+    font-variant-numeric: tabular-nums;
+}
+
+table.places th, table.path th {
+    font-weight: 500;
+    color: var(--muted);
+    font-size: 0.9rem;
+    text-align: center;
+    padding: 0 0 0.25rem 0;
+}
+
+table.places td, table.path td {
+    padding: 0.4rem 0.5rem;
+    text-align: center;
+    font-size: 0.95rem;
+    border-radius: 2px;
+}
+
+table.places td.team, table.path td.team {
+    text-align: left;
+    font-family: "Barlow Condensed", sans-serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    width: 30%;
+    padding-left: 0;
+}
+
+table.path td.out {
+    outline: 2px solid var(--ink);
+    outline-offset: -2px;
+}
+
+table.path td.won {
+    outline: 3px solid var(--accent);
+    outline-offset: -3px;
+}
+
+.legend {
+    display: flex;
+    gap: 1.2rem;
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin: 0.3rem 0 0.8rem 0;
+    flex-wrap: wrap;
+}
+
+.legend span::before {
+    content: "";
+    display: inline-block;
+    width: 0.9rem;
+    height: 0.9rem;
+    margin-right: 0.4rem;
+    vertical-align: -0.12rem;
+    border-radius: 2px;
+    background: var(--swatch);
+}
+
+.day {
+    font-family: "Barlow Condensed", sans-serif;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--muted);
+    margin: 1.4rem 0 0.4rem 0;
+}
+
+.fixture {
+    display: grid;
+    grid-template-columns: 1fr 3fr 1fr;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.35rem 0;
+}
+
+.fixture .home, .fixture .away {
+    font-family: "Barlow Condensed", sans-serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.fixture .home {
+    text-align: right;
+}
+
+.strip {
+    display: flex;
+    height: 1.7rem;
+    gap: 2px;
+}
+
+.strip div {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.strip .h {
+    background: var(--accent);
+    color: #FFFFFF;
+    border-radius: 2px 0 0 2px;
+}
+
+.strip .d {
+    background: var(--draw);
+    color: var(--ink);
+}
+
+.strip .a {
+    background: var(--away);
+    color: #FFFFFF;
+    border-radius: 0 2px 2px 0;
+}
+
+.verdict {
+    font-size: 1.05rem;
+    max-width: 66ch;
+    margin: 0.4rem 0;
+}
+
+.share-row {
+    display: grid;
+    grid-template-columns: 11rem 1fr 3.5rem;
+    align-items: center;
+    gap: 0.8rem;
+    margin: 0.45rem 0;
+}
+
+.share-row .label {
+    font-size: 1rem;
+}
+
+.share-row .bar {
+    height: 1.1rem;
+    background: var(--rule);
+    border-radius: 2px;
+}
+
+.share-row .bar div {
+    height: 100%;
+    background: var(--draw);
+    border-radius: 2px;
+}
+
+.share-row.final .bar div {
+    background: var(--accent);
+}
+
+.share-row.final .label, .share-row.final .value {
+    font-weight: 600;
+}
+
+.share-row .value {
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+}
+
+.stTabs [data-baseweb="tab-list"] {
+    gap: 1.6rem;
+    border-bottom: 1px solid var(--rule);
+}
+
+.stTabs [data-baseweb="tab"] {
+    font-family: "Barlow Condensed", sans-serif;
+    font-size: 1.15rem;
+    font-weight: 600;
+    padding: 0.4rem 0;
+}
+
+@media (max-width: 640px) {
+    .masthead h1 {
+        font-size: 2.5rem;
+    }
+
+    .fixture {
+        grid-template-columns: 1fr;
+        gap: 0.25rem;
+    }
+
+    .fixture .home, .fixture .away {
+        text-align: left;
+    }
+
+    .share-row {
+        grid-template-columns: 1fr 3rem;
+    }
+
+    .share-row .bar {
+        grid-column: 1 / -1;
+        order: 3;
+    }
+}
