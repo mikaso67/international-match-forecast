@@ -93,6 +93,8 @@ data/               raw data and DuckDB database (not tracked)
 
 ## Run
 
+Python 3.13 is required (the pinned NumPy version needs 3.12 or later).
+
 ```
 python -m venv .venv
 .venv\Scripts\activate
