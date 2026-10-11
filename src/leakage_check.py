@@ -1,7 +1,7 @@
 import duckdb
 import pandas as pd
 
-from src.database import ROOT, SQL_DIR, run_sql_file
+from src.database import ROOT, run_sql_file
 from src.elo import build_elo
 
 CUTOFF = "2026-06-11"
